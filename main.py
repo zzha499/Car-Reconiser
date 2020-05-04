@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 import copy
+from my_models import resnet, vgg
 
 # print("PyTorch Version: ",torch.__version__)
 # print("Torchvision Version: ",torchvision.__version__)
@@ -19,28 +20,31 @@ import copy
 data_dir = "./data/car_data"
 
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
-model_name = "squeezenet"
+model_name = "resnet"
 
 # Number of classes in the dataset
 num_classes = 196
 
 # Batch size for training (change depending on how much memory you have)
-batch_size = 20
+batch_size = 64
 
 # Number of epochs to train for
-num_epochs = 3
+num_epochs = 5
 
-# The dataset to train the model on [car_dataset, mnist]
-dataset_name = "mnist"
+# Learning Rate of
+learning_rate = 0.001
+
+# The dataset to train the model on [car_dataset, cifar100, mnist]
+dataset_name = "car_dataset"
 
 # Flag for saving model
-save_model = False
+save_model = True
 
 # Flag for loading model
 load_model = True
 
 # Flag for testing model
-run_test = True
+run_test = False
 
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
@@ -55,8 +59,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
-    for epoch in range(1, num_epochs+1):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+    for epoch in range(1, num_epochs + 1):
+        print('Epoch {}/{}'.format(epoch, num_epochs))
         print('-' * 10)
 
         # Each epoch has a training and validation phase
@@ -67,7 +71,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
                 model.eval()  # Set model to evaluate mode
 
             running_loss = 0.0
-            running_corrects = 0
+            running_corrects = 0.0
 
             # Iterate over data.
             for batch_idx, (inputs, labels) in enumerate(dataloaders[phase]):
@@ -112,7 +116,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+            print('{} Loss: {:.4f} Accuracy: {:.2f}%'.format(phase, epoch_loss, epoch_acc * 100))
 
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
@@ -125,7 +129,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+    print('Best val Accuracy: {:2f}%'.format(best_acc * 100))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -136,17 +140,22 @@ def set_parameter_requires_grad(model, feature_extracting):
     if feature_extracting:
         for param in model.parameters():
             param.requires_grad = False
+        for param in model.fc.parameters():
+            param.requires_grad = True
+    else:
+        for param in model.parameters():
+            param.requires_grad = True
 
 
-def initialize_model(model_name, num_classes, feature_extract, use_pretrained=True):
+def initialize_model(model_name, num_classes, feature_extract=False, use_pretrained=False):
     # Initialize these variables which will be set in this if statement. Each of these
     #   variables is model specific.
     input_size = 0
 
     if model_name == "resnet":
-        """ Resnet18
+        """ Resnet10
         """
-        model = models.resnet18(pretrained=use_pretrained)
+        model = models.resnet34(pretrained=use_pretrained)
         set_parameter_requires_grad(model, feature_extract)
         num_rs = model.fc.in_features
         model.fc = nn.Linear(num_rs, num_classes)
@@ -162,9 +171,9 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         input_size = 224
 
     elif model_name == "vgg":
-        """ VGG11_bn
+        """ VGG8_bn
         """
-        model = models.vgg11_bn(pretrained=use_pretrained)
+        model = vgg.vgg8(pretrained=use_pretrained)
         set_parameter_requires_grad(model, feature_extract)
         num_rs = model.classifier[6].in_features
         model.classifier[6] = nn.Linear(num_rs, num_classes)
@@ -229,108 +238,136 @@ def test_model(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 
-# Initialize the model for this run
-model, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=False)
+if __name__ == "__main__":
+    # Initialize the model for this run
+    model, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
 
-if load_model:
-    model.load_state_dict(torch.load("./models/" + dataset_name + "_" + model_name + ".pt"))
+    if load_model:
+        model = torch.load("./saved_models/" + dataset_name + "_" + model_name + "_" + str(learning_rate) + ".pt")[
+            "model"]
 
-# # Print the model we just instantiated
-# print(model)
+    set_parameter_requires_grad(model, feature_extract)
 
-# Data augmentation and normalization for training
-# Just normalization for validation
-data_transforms = {
-    'train': transforms.Compose([
-        transforms.RandomResizedCrop(input_size),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-    'val': transforms.Compose([
-        transforms.Resize(input_size),
-        transforms.CenterCrop(input_size),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]),
-}
+    # # Print the model we just instantiated
+    # print(model)
 
-print("Initializing Datasets and Dataloaders...")
+    # Data augmentation and normalization for training
+    # Just normalization for validation
+    data_transforms = {
+        'train': transforms.Compose([
+            transforms.RandomResizedCrop(input_size),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ]),
+        'val': transforms.Compose([
+            transforms.Resize(input_size),
+            transforms.CenterCrop(input_size),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ]),
+    }
 
-# Create training and validation datasets
-if dataset_name == "car_dataset":
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
-else:
-    image_datasets = {"train": datasets.MNIST('./data', train=True, download=False,
-                                              transform=transforms.Compose([transforms.Resize(224), transforms.Grayscale(3),
-                                                                            transforms.ToTensor(),
-                                                                            ])),
-                      "val": datasets.MNIST('./data', train=False,
-                                            transform=transforms.Compose([transforms.Resize(224), transforms.Grayscale(3),
-                                                                          transforms.ToTensor(),
-                                                                          ]))}
+    print("Initializing Datasets and Dataloaders...")
 
-# Create training and validation dataloaders
-dataloaders_dict = {
-    x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in
-    ['train', 'val']}
+    # Create training and validation datasets
+    if dataset_name == "car_dataset":
+        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in
+                          ['train', 'val']}
+    elif dataset_name == "cifar100":
+        image_datasets = {"train": datasets.CIFAR100('./data', train=True,
+                                                     transform=transforms.Compose(
+                                                         [transforms.Resize(224),
+                                                          transforms.ToTensor(),
+                                                          ]), download=False),
+                          "val": datasets.CIFAR100('./data', train=False,
+                                                   transform=transforms.Compose(
+                                                       [transforms.Resize(224),
+                                                        transforms.ToTensor(),
+                                                        ]))}
+    else:
+        image_datasets = {"train": datasets.MNIST('./data', train=True, download=False,
+                                                  transform=transforms.Compose(
+                                                      [transforms.Resize(224), transforms.Grayscale(3),
+                                                       transforms.ToTensor(),
+                                                       ])),
+                          "val": datasets.MNIST('./data', train=False,
+                                                transform=transforms.Compose(
+                                                    [transforms.Resize(224), transforms.Grayscale(3),
+                                                     transforms.ToTensor(),
+                                                     ]))}
 
-# Detect if we have a GPU available
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # Create training and validation dataloaders
+    dataloaders_dict = {
+        x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=3) for x in
+        ['train', 'val']}
 
-# Send the model to GPU
-model = model.to(device)
+    inputs, classes = next(iter(dataloaders_dict['train']))
 
-# Gather the parameters to be optimized/updated in this run. If we are
-#  finetuning we will be updating all parameters. However, if we are
-#  doing feature extract method, we will only update the parameters
-#  that we have just initialized, i.e. the parameters with requires_grad
-#  is True.
-params_to_update = model.parameters()
-print("Params to learn:")
-if feature_extract:
-    params_to_update = []
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            params_to_update.append(param)
-            print("\t", name)
-else:
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print("\t", name)
+    # Detect if we have a GPU available
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Observe that all parameters are being optimized
-# optimizer = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
-optimizer = optim.Adam(params_to_update, lr=0.001)
+    # Send the model to GPU
+    model = model.to(device)
 
-# Setup the loss fxn
-criterion = nn.CrossEntropyLoss()
-# criterion = nn.functional.nll_loss()
+    # Gather the parameters to be optimized/updated in this run. If we are
+    #  finetuning we will be updating all parameters. However, if we are
+    #  doing feature extract method, we will only update the parameters
+    #  that we have just initialized, i.e. the parameters with requires_grad
+    #  is True.
+    params_to_update = model.parameters()
+    print("Params to learn:")
+    if feature_extract:
+        params_to_update = []
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                params_to_update.append(param)
+                print("\t", name)
+    else:
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print("\t", name)
 
-if not run_test:
-    # Train and evaluate
-    print("Training model:")
-    model, hist = train_model(model, dataloaders_dict, criterion, optimizer, num_epochs=num_epochs,
-                              is_inception=(model_name == "inception"))
+    # Observe that all parameters are being optimized
+    optimizer = optim.SGD(params_to_update, lr=learning_rate, momentum=0.9)
+    # optimizer = optim.Adam(params_to_update, lr=learning_rate)
 
-    if save_model:
-        torch.save(model.state_dict(), "./models/" + dataset_name + "_" + model_name + ".pt")
+    if load_model:
+        optimizer = torch.load("./saved_models/" + dataset_name + "_" + model_name + "_" + str(learning_rate) + ".pt")[
+            "optimizer"]
 
-else:
-    print("Testing model:")
-    test_model(model, device, dataloaders_dict["val"])
-    hist = []
+    # Setup the loss fxn
+    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.functional.nll_loss()
 
-# Plot the training curves of validation accuracy vs. number
-#  of training epochs for the the trained model
+    if not run_test:
+        # Train and evaluate
+        print("Training model:")
+        model, hist = train_model(model, dataloaders_dict, criterion, optimizer, num_epochs=num_epochs,
+                                  is_inception=(model_name == "inception"))
 
-hist = [h.cpu().numpy() for h in hist]
+        if save_model:
+            saved_model = {
+                'model': model,
+                'optimizer': optimizer,
+                'lr': learning_rate
+            }
+            torch.save(saved_model,
+                       "./saved_models/" + dataset_name + "_" + model_name + "_" + str(learning_rate) + ".pt")
 
-plt.title("Validation Accuracy vs. Number of Training Epochs")
-plt.xlabel("Training Epochs")
-plt.ylabel("Validation Accuracy")
-plt.plot(range(1, num_epochs+1), hist, label=model_name)
-plt.ylim((0, 1.))
-plt.xticks(np.arange(1, num_epochs+1, 1.0))
-plt.legend()
-plt.show()
+        # Plot the training curves of validation accuracy vs. number
+        #  of training epochs for the the trained model
+
+        hist = [h.cpu().numpy() for h in hist]
+
+        plt.title("Validation Accuracy vs. Number of Training Epochs")
+        plt.xlabel("Training Epochs")
+        plt.ylabel("Validation Accuracy")
+        plt.plot(range(1, num_epochs + 1), hist, label=model_name)
+        plt.ylim((0, 1.))
+        plt.xticks(np.arange(1, num_epochs + 1, 1.0))
+        plt.legend()
+        plt.show()
+    else:
+        print("Testing model:")
+        test_model(model, device, dataloaders_dict["val"])
