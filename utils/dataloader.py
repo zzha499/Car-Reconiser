@@ -26,11 +26,11 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
 
     # Create training and validation datasets
     if dataset_name == "car_dataset":
-        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in
-                          ['car_dataset/train', 'car_dataset/val']}
+        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data', x), data_transforms[x]) for x in
+                          ['train', 'val']}
     elif dataset_name == "car_dataset_modified":
-        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in
-                          ['car_dataset_modified/train', 'car_dataset_modified/val']}
+        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data_modified', x), data_transforms[x]) for x in
+                          ['train', 'val']}
     elif dataset_name == "cifar100":
         image_datasets = {"train": datasets.CIFAR100('./data', train=True,
                                                      transform=transforms.Compose(
