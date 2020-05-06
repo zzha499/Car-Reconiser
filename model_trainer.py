@@ -2,7 +2,7 @@ import torch
 import time
 
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_inception=False):
+def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=1, is_inception=False):
     # Detect if we have a GPU available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -69,6 +69,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
+
+            scheduler.step()
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)

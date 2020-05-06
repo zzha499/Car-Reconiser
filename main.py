@@ -51,6 +51,7 @@ if __name__ == "__main__":
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
     # optimizer = optim.Adam(params_to_update, lr=learning_rate)
 
+    # Setup scheduler for lr
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=gamma)
 
     if load_model:
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 
     # Train and evaluate
     print("Training model:")
-    model, hist = train_model(model, dataloaders_dict, criterion, optimizer, num_epochs=num_epochs,
+    model, hist = train_model(model, dataloaders_dict, criterion, optimizer, scheduler, num_epochs=num_epochs,
                               is_inception=(model_name == "inception"))
 
     if save_model:
