@@ -3,9 +3,9 @@ from __future__ import division
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
-from utils.model_initializer import *
-from utils.dataloader import *
-from utils.model_trainer import *
+from COMPSYS_302_Project_1.utils.model_initializer import *
+from COMPSYS_302_Project_1.utils.dataloader import *
+from COMPSYS_302_Project_1.utils.model_trainer import *
 
 
 # Top level data directory. Here we assume the format of the directory conforms
