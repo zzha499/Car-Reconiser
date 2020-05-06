@@ -3,6 +3,7 @@ from __future__ import division
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim.lr_scheduler import StepLR
 import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
@@ -17,13 +18,13 @@ from my_models import resnet, vgg
 
 # Top level data directory. Here we assume the format of the directory conforms
 #   to the ImageFolder structure
-data_dir = "./data/car_data"
+data_dir = "./data/car_modified"
 
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
 model_name = "resnet"
 
 # Number of classes in the dataset
-num_classes = 196
+num_classes = 14
 
 # Batch size for training (change depending on how much memory you have)
 batch_size = 64
@@ -32,13 +33,13 @@ batch_size = 64
 num_epochs = 5
 
 # Learning Rate of
-learning_rate = 0.001
+learning_rate = 0.1
 
 # The dataset to train the model on [car_dataset, cifar100, mnist]
 dataset_name = "car_dataset"
 
 # Flag for saving model
-save_model = True
+save_model = False
 
 # Flag for loading model
 load_model = True
@@ -51,7 +52,7 @@ run_test = False
 feature_extract = False
 
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_inception=False):
+def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_inception=False, scheduler=None):
     since = time.time()
 
     val_acc_history = []
@@ -90,9 +91,9 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
                     #   but in testing we only consider the final output.
                     if is_inception and phase == 'train':
                         # From https://discuss.pytorch.org/t/how-to-optimize-inception-model-with-auxiliary-classifiers/7958
-                        outputs, aux_outputs = model(inputs)
+                        outputs, aux_outputs1, aux_outputs2 = model(inputs)
                         loss1 = criterion(outputs, labels)
-                        loss2 = criterion(aux_outputs, labels)
+                        loss2 = criterion(aux_outputs1, labels)
                         loss = loss1 + 0.4 * loss2
                     else:
                         outputs = model(inputs)
@@ -125,6 +126,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=1, is_incep
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
 
+        scheduler.step()
         print()
 
     time_elapsed = time.time() - since
@@ -152,10 +154,15 @@ def initialize_model(model_name, num_classes, feature_extract=False, use_pretrai
     #   variables is model specific.
     input_size = 0
 
-    if model_name == "resnet":
+    if model_name == "googlenet":
+        model = models.googlenet(pretrained=use_pretrained)
+        model.fc = nn.Linear(1024, num_classes)
+        input_size = 224
+
+    elif model_name == "resnet":
         """ Resnet10
         """
-        model = models.resnet34(pretrained=use_pretrained)
+        model = resnet.resnet10(pretrained=use_pretrained)
         set_parameter_requires_grad(model, feature_extract)
         num_rs = model.fc.in_features
         model.fc = nn.Linear(num_rs, num_classes)
@@ -240,10 +247,10 @@ def test_model(model, device, test_loader):
 
 if __name__ == "__main__":
     # Initialize the model for this run
-    model, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=True)
+    model, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=False)
 
     if load_model:
-        model = torch.load("./saved_models/" + dataset_name + "_" + model_name + "_" + str(learning_rate) + ".pt")[
+        model = torch.load("./saved_models/" + dataset_name + "_" + model_name + ".pt")[
             "model"]
 
     set_parameter_requires_grad(model, feature_extract)
@@ -255,7 +262,8 @@ if __name__ == "__main__":
     # Just normalization for validation
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(input_size),
+            transforms.Resize(input_size),
+            transforms.CenterCrop(input_size),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -274,6 +282,7 @@ if __name__ == "__main__":
     if dataset_name == "car_dataset":
         image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in
                           ['train', 'val']}
+
     elif dataset_name == "cifar100":
         image_datasets = {"train": datasets.CIFAR100('./data', train=True,
                                                      transform=transforms.Compose(
@@ -316,24 +325,26 @@ if __name__ == "__main__":
     #  that we have just initialized, i.e. the parameters with requires_grad
     #  is True.
     params_to_update = model.parameters()
-    print("Params to learn:")
-    if feature_extract:
-        params_to_update = []
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                params_to_update.append(param)
-                print("\t", name)
-    else:
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                print("\t", name)
+    # print("Params to learn:")
+    # if feature_extract:
+    #     params_to_update = []
+    #     for name, param in model.named_parameters():
+    #         if param.requires_grad:
+    #             params_to_update.append(param)
+    #             print("\t", name)
+    # else:
+    #     for name, param in model.named_parameters():
+    #         if param.requires_grad:
+    #             print("\t", name)
 
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(params_to_update, lr=learning_rate, momentum=0.9)
     # optimizer = optim.Adam(params_to_update, lr=learning_rate)
 
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
+
     if load_model:
-        optimizer = torch.load("./saved_models/" + dataset_name + "_" + model_name + "_" + str(learning_rate) + ".pt")[
+        optimizer = torch.load("./saved_models/" + dataset_name + "_" + model_name + ".pt")[
             "optimizer"]
 
     # Setup the loss fxn
@@ -344,7 +355,7 @@ if __name__ == "__main__":
         # Train and evaluate
         print("Training model:")
         model, hist = train_model(model, dataloaders_dict, criterion, optimizer, num_epochs=num_epochs,
-                                  is_inception=(model_name == "inception"))
+                                  is_inception=(model_name == "inception" or model_name == "googlenet"), scheduler=scheduler)
 
         if save_model:
             saved_model = {
@@ -353,7 +364,7 @@ if __name__ == "__main__":
                 'lr': learning_rate
             }
             torch.save(saved_model,
-                       "./saved_models/" + dataset_name + "_" + model_name + "_" + str(learning_rate) + ".pt")
+                       "./saved_models/" + dataset_name + "_" + model_name + ".pt")
 
         # Plot the training curves of validation accuracy vs. number
         #  of training epochs for the the trained model
