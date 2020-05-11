@@ -44,7 +44,24 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
     with torch.no_grad():
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
         preds = get_all_preds(model, data_loader).to("cpu")
-    if score: calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes))
+    if score:
+        scores = np.asarray(calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes)))
+        plt.figure(3)
+        plt.title('Precision/Recall/F1 Scores')
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, ["Precision", "Recall", "F1", "Number of images"], rotation=45)
+        plt.yticks(tick_marks, classes)
+
+        fmt = '.2f' if normalize else 'd'
+        for i, j in itertools.product(range(scores.shape[0]), range(scores.shape[1])):
+            plt.text(j, i, format(scores[i, j], fmt), horizontalalignment="center",
+                     color="white")
+        plt.tight_layout()
+        plt.ylabel('Classes')
+        plt.xlabel('Scores')
+        plt.show()
+
+
     cm = confusion_matrix(dataset.targets, preds.argmax(dim=1))
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -53,7 +70,7 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
         print('Confusion matrix, without normalization')
 
     print(cm)
-    plt.figure(3)
+    plt.figure(4)
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title('Confusion matrix')
     plt.colorbar()
@@ -92,7 +109,14 @@ def get_all_preds(model, data_loader):
 def calculate_scores(labels, preds, classes):
     precision, recall, fscore, support = score(labels, preds, average=None, labels=classes)
     np.set_printoptions(precision=2)
-    print('precision: {}'.format(precision*100))
-    print('recall: {}'.format(recall*100))
+    precision = precision * 100
+    recall = recall * 100
+    print('precision: {}'.format(precision))
+    print('recall: {}'.format(recall))
     print('fscore: {}'.format(fscore))
     print('support: {}'.format(support))
+
+    table = []
+    for i in range(len(classes)):
+        table.append([precision[i], recall[i], fscore[i], support[i]])
+    return table
