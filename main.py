@@ -16,9 +16,9 @@ parser.add_argument('--batch_size', '-b', default=64, type=int, help='Batch size
 parser.add_argument('--num_of_epochs', '-es', default=1, type=int, help='Number of epochs')
 parser.add_argument('--save_model', '-sm', default=True, action='store_true', help='Save model')
 parser.add_argument('--load_model', '-lm', default=False, action='store_true', help='Load model')
-parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
-parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
-parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
+# parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
+# parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
+# parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
 args = parser.parse_args()
 
 # Top level data directory. Here we assume the format of the directory conforms
@@ -102,8 +102,8 @@ if __name__ == "__main__":
     # Plot training and validation accuracies vs epochs
     graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
-    # Plot the confusion matrix of the trained model
-    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], classes, normalize=False)
+    # Plot the confusion matrix and calculate the precision, recall, and F1 scores of the trained model
+    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], classes, normalize=False, Score=True)
 
     # Exit program
     exit()
