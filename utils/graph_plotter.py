@@ -3,6 +3,7 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from sklearn.metrics import precision_recall_fscore_support as Score
 
 
@@ -47,18 +48,21 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
     if score:
         print("Calculating precision, recall, and f1 scores......")
         scores = np.asarray(calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes)))
-        plt.figure(3)
-        plt.title('Precision/Recall/F1 Scores')
-        tick_marks = np.arange(len(classes))
-        plt.xticks(tick_marks, ["Precision", "Recall", "F1", "Number of images"], rotation=45)
-        plt.yticks(tick_marks, classes)
+        print(scores)
+        # plt.figure(3)
+        # plt.title('Precision/Recall/F1 Scores')
+        # xtick_marks = np.arange(4)
+        # ytick_marks = np.arange(len(classes))
+        # plt.xticks(xtick_marks, ["Precision", "Recall", "F1", "Number of images"], rotation=45)
+        #  plt.yticks(ytick_marks, classes)
 
-        for i, j in itertools.product(range(scores.shape[0]), range(scores.shape[1])):
-            plt.text(j, i, format(scores[i, j], '.2f'), horizontalalignment="center",
-                     color="white")
-        plt.tight_layout()
-        plt.ylabel('Classes')
-        plt.xlabel('Scores')
+        # for i, j in itertools.product(range(scores.shape[0]), range(scores.shape[1])):
+        #     plt.text(j, i, format(scores[i, j], '.2f'), horizontalalignment="center",
+        #              color="black")
+        # plt.tick_params(axis='x', labelsize=14)
+        plt.table(cellText=scores, rowLabels=classes, colLabels=["Precision", "Recall", "F1", "Number of images"], loc='center')
+        # plt.ylabel('Classes')
+        # plt.xlabel('Scores')
         plt.show()
 
     print("Calculating confusion matrix......")
@@ -75,7 +79,7 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
     plt.title('Confusion matrix')
     plt.colorbar()
     tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
+    plt.xticks(tick_marks, classes, rotation=90)
     plt.yticks(tick_marks, classes)
 
     fmt = '.2f' if normalize else 'd'
@@ -107,8 +111,10 @@ def get_all_preds(model, data_loader):
 
 
 def calculate_scores(labels, preds, classes):
-    precision, recall, fscore, support = Score(labels, preds, average=None, labels=classes)
-    np.set_printoptions(precision=2)
+    precision, recall, fscore, support = Score(labels, preds)
+    precision = np.around(precision, decimals=2)*100
+    recall = np.around(recall, decimals=2)*100
+    fscore = np.around(fscore, decimals=2)
     print('precision: {}'.format(precision))
     print('recall: {}'.format(recall))
     print('fscore: {}'.format(fscore))
