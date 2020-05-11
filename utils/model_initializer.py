@@ -1,6 +1,6 @@
 import torch.nn as nn
 from torchvision import models
-from my_models import resnet, vgg, inception
+from my_models import resnet, vgg, inception, alexnet
 
 
 def initialize_model(model_name, num_classes):
@@ -24,6 +24,14 @@ def initialize_model(model_name, num_classes):
         model.classifier[6] = nn.Linear(num_rs, num_classes)
         input_size = 224
 
+    elif model_name == "alexnet":
+        """ Alexnet
+        """
+        model = alexnet.alexnet()
+        num_rs = model.classifier[6].in_features
+        model.classifier[6] = nn.Linear(num_rs, num_classes)
+        input_size = 224
+
     elif model_name == "inception":
         """ Inception v3
         Be careful, expects (299,299) sized images and has auxiliary output
@@ -36,14 +44,6 @@ def initialize_model(model_name, num_classes):
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 299
-
-    elif model_name == "alexnet":
-        """ Alexnet
-        """
-        model = models.alexnet()
-        num_rs = model.classifier[6].in_features
-        model.classifier[6] = nn.Linear(num_rs, num_classes)
-        input_size = 224
 
     elif model_name == "squeezenet":
         """ Squeezenet

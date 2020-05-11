@@ -20,6 +20,7 @@ def plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs):
     plt.plot(range(1, num_epochs + 1), train_acc, label="Training Accuracy")
     plt.plot(range(1, num_epochs + 1), val_acc, label="Validate Accuracy")
     plt.ylim((0, 1.))
+    plt.legend()
     plt.xticks(np.arange(1, num_epochs + 1, 1.0))
     plt.show()
 
@@ -37,6 +38,7 @@ def plot_loss_vs_epoch(train_loss, val_loss, num_epochs):
     plt.plot(range(1, num_epochs + 1), train_loss, label="Training Loss")
     plt.plot(range(1, num_epochs + 1), val_loss, label="Validate Loss")
     plt.ylim((0, 6))
+    plt.legend()
     plt.xticks(np.arange(1, num_epochs + 1, 1.0))
     plt.show()
 

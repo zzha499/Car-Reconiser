@@ -9,8 +9,8 @@ parser = argparse.ArgumentParser(description='PyTorch Car Dataset Training')
 parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, help='Available Dataset: [car_dataset, '
                                                                                    'car_dataset_modified, cifar100, '
                                                                                    'mnist]')
-parser.add_argument('--model', '-m', default="resnet", type=str, help='Available Model: [resnet, vgg, squeezenet, '
-                                                                      'densenet, inception]')
+parser.add_argument('--model', '-m', default="resnet", type=str, help='Available Model: [alexnet, resnet, vgg, '
+                                                                      'squeezenet, densenet, inception]')
 parser.add_argument('--lr', '-lr', default=0.05, type=float, help='Starting learning rate')
 parser.add_argument('--batch_size', '-b', default=128, type=int, help='Batch size')
 parser.add_argument('--num_of_epochs', '-es', default=15, type=int, help='Number of epochs')
