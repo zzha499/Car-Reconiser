@@ -1,20 +1,23 @@
-from __future__ import print_function
-from __future__ import division
+import os
+import torch
+import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 from utils.model_initializer import *
-from utils.dataloader import *
+from utils.data_loader import *
 from utils.model_trainer import *
 import argparse
 
 
 parser = argparse.ArgumentParser(description='PyTorch Car Dataset Training')
-parser.add_argument('--dataset', '-d', default="car_dataset_modified", type=str, help='Dataset')
+parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, help='Available Dataset: [car_dataset, '
+                                                                                   'car_dataset_modified, cifar100, '
+                                                                                   'mnist]')
 parser.add_argument('--model', '-m', default="resnet", type=str, help='Model')
 parser.add_argument('--lr', '-lr', default=0.05, type=float, help='Starting learning rate')
-parser.add_argument('--batch_size', '-b', default=32, type=int, help='Batch size')
-parser.add_argument('--num_of_epochs', '-es', default=10, type=int, help='Number of epochs')
+parser.add_argument('--batch_size', '-b', default=64, type=int, help='Batch size')
+parser.add_argument('--num_of_epochs', '-es', default=15, type=int, help='Number of epochs')
 parser.add_argument('--save', '-s', default=False, action='store_true', help='Save model')
 parser.add_argument('--load', '-l', default=False, action='store_true', help='Load model')
 args = parser.parse_args()
@@ -23,11 +26,14 @@ args = parser.parse_args()
 #   to the ImageFolder structure
 data_dir = "./data"
 
+# The dataset to train the model on [car_data, car_data_modified, cifar100, mnist]
+dataset_name = args.dataset
+
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
 model_name = args.model
 
 # Number of classes in the dataset
-num_classes = 10
+num_classes = len(os.listdir(os.path.join(os.path.join(data_dir, args.dataset), "train")))-1
 
 # Batch size for training (change depending on how much memory you have)
 batch_size = args.batch_size
@@ -40,9 +46,6 @@ learning_rate = args.lr
 
 # gamma of scheduler
 gamma = 0.9
-
-# The dataset to train the model on [car_dataset, car_dataset_modified, cifar100, mnist]
-dataset_name = args.dataset
 
 # Flag for saving model
 save_model = args.save

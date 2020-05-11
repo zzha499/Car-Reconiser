@@ -31,10 +31,10 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
     kwargs = {'num_workers': 1, 'pin_memory': True} if torch.cuda.is_available() else {}
 
     # Create training and validation datasets
-    if dataset_name == "car_dataset":
+    if dataset_name == "car_data":
         image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data', x), data_transforms[x]) for x in
                           ['train', 'val']}
-    elif dataset_name == "car_dataset_modified":
+    elif dataset_name == "car_data_modified":
         image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data_modified', x), data_transforms[x]) for x in
                           ['train', 'val']}
     elif dataset_name == "cifar100":
@@ -48,7 +48,7 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
                                                        [transforms.Resize(224),
                                                         transforms.ToTensor(),
                                                         ]))}
-    else:
+    elif dataset_name == "mnist":
         image_datasets = {"train": datasets.MNIST('./data', train=True, download=True,
                                                   transform=transforms.Compose(
                                                       [transforms.Resize(224), transforms.Grayscale(3),
@@ -59,10 +59,14 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
                                                     [transforms.Resize(224), transforms.Grayscale(3),
                                                      transforms.ToTensor(),
                                                      ]))}
+    else:
+        print("UNKNOWN Dataset! Please Chooses from the following datasets:")
+        print("\t[car_data, car_data_modified, cifar100, mnist]")
+        exit()
 
     classes = image_datasets["train"].classes
     class_names = {i: name for i, name in enumerate(classes)}
-    print(class_names)
+    # print(class_names)
 
     # Create training and validation dataloaders
     dataloaders_dict = {
