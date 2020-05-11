@@ -3,6 +3,7 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import precision_recall_fscore_support as score
 
 
 def plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs):
@@ -68,6 +69,7 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    plt.show()
 
 
 # https://deeplizard.com/learn/video/0LhiS6yu2qQ
@@ -84,6 +86,19 @@ def get_all_preds(model, data_loader):
         preds = model(inputs)
         all_preds = torch.cat((all_preds, preds), dim=0)
     return all_preds
+
+
+def calculate_scores(model, dataset):
+    with torch.no_grad():
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=10000)
+        preds = get_all_preds(model, data_loader)
+
+    precision, recall, fscore, support = score(dataset.targets, preds)
+
+    print('precision: {}'.format(precision))
+    print('recall: {}'.format(recall))
+    print('fscore: {}'.format(fscore))
+    print('support: {}'.format(support))
 
 
 
