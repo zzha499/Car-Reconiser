@@ -39,12 +39,11 @@ def plot_loss_vs_epoch(train_loss, val_loss, num_epochs):
     plt.show()
 
 
-def plot_confusion_matrix(model, data_loader, classes, normalize=False):
-    preds = get_all_preds(model, data_loader)
-    labels = torch.tensor([])
-    for _, label in data_loader:
-        labels = torch.cat((labels, label), dim=0)
-    cm = confusion_matrix(labels, preds.argmax(dim=1))
+def plot_confusion_matrix(model, dataset, classes, normalize=False):
+    with torch.no_grad():
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=10000)
+        preds = get_all_preds(model, data_loader)
+    cm = confusion_matrix(dataset.labels, preds.argmax(dim=1))
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")

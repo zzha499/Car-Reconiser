@@ -98,4 +98,4 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
     # title = [class_names[x.item()] if (i + 1) % 4 != 0 else class_names[x.item()] + '\n' for i, x in enumerate(labels)]
     # imshow(out, title=' | '.join(title), ax=ax)
 
-    return dataloaders_dict, class_names
+    return dataloaders_dict, class_names, image_datasets
