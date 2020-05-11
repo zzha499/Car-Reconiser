@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # Print the model we just instantiated
     # print(model)
 
-    dataloaders_dict, classes = data_loader.load_data(dataset_name, input_size, batch_size, data_dir)
+    dataloaders_dict, classes, image_datasets = data_loader.load_data(dataset_name, input_size, batch_size, data_dir)
 
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss()
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
     # Plot the confusion matrix of the trained model
-    graph_plotter.plot_confusion_matrix(model, dataloaders_dict['val'], classes, normalize=False)
+    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], classes, normalize=False)
 
     # Exit program
     exit()
