@@ -2,13 +2,8 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
-from utils.model_initializer import *
-from utils.data_loader import *
-from utils.model_trainer import *
+from utils import model_initializer, data_loader, model_trainer, graph_plotter
 import argparse
-
 
 parser = argparse.ArgumentParser(description='PyTorch Car Dataset Training')
 parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, help='Available Dataset: [car_dataset, '
@@ -17,9 +12,12 @@ parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, he
 parser.add_argument('--model', '-m', default="resnet", type=str, help='Model')
 parser.add_argument('--lr', '-lr', default=0.05, type=float, help='Starting learning rate')
 parser.add_argument('--batch_size', '-b', default=64, type=int, help='Batch size')
-parser.add_argument('--num_of_epochs', '-es', default=15, type=int, help='Number of epochs')
-parser.add_argument('--save', '-s', default=False, action='store_true', help='Save model')
-parser.add_argument('--load', '-l', default=False, action='store_true', help='Load model')
+parser.add_argument('--num_of_epochs', '-es', default=1, type=int, help='Number of epochs')
+parser.add_argument('--save_model', '-sm', default=False, action='store_true', help='Save model')
+parser.add_argument('--load_model', '-lm', default=False, action='store_true', help='Load model')
+parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
+parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
+parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
 args = parser.parse_args()
 
 # Top level data directory. Here we assume the format of the directory conforms
@@ -33,7 +31,7 @@ dataset_name = args.dataset
 model_name = args.model
 
 # Number of classes in the dataset
-num_classes = len(os.listdir(os.path.join(os.path.join(data_dir, args.dataset), "train")))-1
+num_classes = len(os.listdir(os.path.join(os.path.join(data_dir, args.dataset), "train"))) - 1
 
 # Batch size for training (change depending on how much memory you have)
 batch_size = args.batch_size
@@ -48,15 +46,14 @@ learning_rate = args.lr
 gamma = 0.9
 
 # Flag for saving model
-save_model = args.save
+save_model = args.save_model
 
 # Flag for loading model
-load_model = args.load
-
+load_model = args.load_model
 
 if __name__ == "__main__":
     # Initialize the model for this run
-    model, input_size = initialize_model(model_name, num_classes)
+    model, input_size = model_initializer.initialize_model(model_name, num_classes)
 
     # Observe that all parameters are being optimized
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
@@ -75,7 +72,7 @@ if __name__ == "__main__":
     # Print the model we just instantiated
     # print(model)
 
-    dataloaders_dict, classes = load_data(dataset_name, input_size, batch_size, data_dir)
+    dataloaders_dict, classes = data_loader.load_data(dataset_name, input_size, batch_size, data_dir)
 
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss()
@@ -83,8 +80,12 @@ if __name__ == "__main__":
 
     # Train and evaluate
     print("Training model:")
-    model, thist, vhist = train_model(model, dataloaders_dict, criterion, optimizer, scheduler, num_epochs=num_epochs,
-                              is_inception=(model_name == "inception"), classes=classes)
+    model, train_acc, val_acc, train_loss, val_loss = model_trainer.train_model(model, dataloaders_dict, criterion,
+                                                                                optimizer, scheduler,
+                                                                                num_epochs=num_epochs,
+                                                                                is_inception=(
+                                                                                            model_name == "inception"),
+                                                                                classes=classes)
 
     if save_model:
         saved_model = {
@@ -94,19 +95,14 @@ if __name__ == "__main__":
         }
         torch.save(saved_model, "./saved_models/" + dataset_name + "_" + model_name + ".pt")
 
-    # Plot the training curves of validation accuracy vs. number
-    #  of training epochs for the the trained model
+    # Plot training and validation losses vs epochs
+    graph_plotter.plot_loss_vs_epoch(train_loss, val_loss, num_epochs)
 
-    thist = [h.cpu().numpy() for h in thist]
-    vhist = [h.cpu().numpy() for h in vhist]
+    # Plot training and validation accuracies vs epochs
+    graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
-    plt.title("Accuracy vs. Number of Training Epochs")
-    plt.xlabel("Training Epochs")
-    plt.ylabel("Accuracy")
-    plt.plot(range(1, num_epochs + 1), thist, label="Training Accuracy")
-    plt.plot(range(1, num_epochs + 1), vhist, label="Validate Accuracy")
-    plt.ylim((0, 1.))
-    plt.xticks(np.arange(1, num_epochs + 1, 1.0))
-    plt.legend()
-    plt.show()
+    # Plot the confusion matrix of the trained model
+    graph_plotter.plot_confusion_matrix(model, dataloaders_dict['val'], classes, normalize=False)
+
+    # Exit program
     exit()
