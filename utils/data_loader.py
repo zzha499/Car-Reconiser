@@ -67,6 +67,7 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
     classes = image_datasets["train"].classes
     class_names = {i: name for i, name in enumerate(classes)}
     # print(class_names)
+    # print(image_datasets["val"].targets)
 
     # Create training and validation dataloaders
     dataloaders_dict = {
