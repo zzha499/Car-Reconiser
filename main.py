@@ -12,10 +12,10 @@ parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, he
 parser.add_argument('--model', '-m', default="resnet", type=str, help='Available Model: [resnet, vgg, squeezenet, '
                                                                       'densenet, inception]')
 parser.add_argument('--lr', '-lr', default=0.05, type=float, help='Starting learning rate')
-parser.add_argument('--batch_size', '-b', default=64, type=int, help='Batch size')
-parser.add_argument('--num_of_epochs', '-es', default=1, type=int, help='Number of epochs')
+parser.add_argument('--batch_size', '-b', default=128, type=int, help='Batch size')
+parser.add_argument('--num_of_epochs', '-es', default=15, type=int, help='Number of epochs')
 parser.add_argument('--save_model', '-sm', default=True, action='store_true', help='Save model')
-parser.add_argument('--load_model', '-lm', default=False, action='store_true', help='Load model')
+parser.add_argument('--load_model', '-lm', default=True, action='store_true', help='Load model')
 parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
 parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
 parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # Print the model we just instantiated
     # print(model)
 
-    dataloaders_dict, classes, image_datasets = data_loader.load_data(dataset_name, input_size, batch_size, data_dir)
+    dataloaders_dict, classes, image_datasets, class_names = data_loader.load_data(dataset_name, input_size, batch_size, data_dir)
 
     # Setup the loss fxn
     criterion = nn.CrossEntropyLoss()
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
     # Plot the confusion matrix of the trained model
-    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], classes, normalize=False)
+    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], class_names, normalize=False)
 
     # Exit program
     exit()
