@@ -40,10 +40,11 @@ def plot_loss_vs_epoch(train_loss, val_loss, num_epochs):
     plt.show()
 
 
-def plot_confusion_matrix(model, dataset, classes, normalize=False):
+def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
     with torch.no_grad():
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
         preds = get_all_preds(model, data_loader).to("cpu")
+    if score: calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes))
     cm = confusion_matrix(dataset.targets, preds.argmax(dim=1))
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -88,17 +89,10 @@ def get_all_preds(model, data_loader):
     return all_preds
 
 
-def calculate_scores(model, dataset):
-    with torch.no_grad():
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=10000)
-        preds = get_all_preds(model, data_loader)
-
-    precision, recall, fscore, support = score(dataset.targets, preds)
-
-    print('precision: {}'.format(precision))
-    print('recall: {}'.format(recall))
+def calculate_scores(labels, preds, classes):
+    precision, recall, fscore, support = score(labels, preds, average=None, labels=classes)
+    np.set_printoptions(precision=2)
+    print('precision: {}'.format(precision*100))
+    print('recall: {}'.format(recall*100))
     print('fscore: {}'.format(fscore))
     print('support: {}'.format(support))
-
-
-
