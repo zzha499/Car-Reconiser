@@ -1,6 +1,7 @@
 import torch
 import time
 import copy
+from sklearn.metrics import confusion_matrix
 
 
 def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=1, is_inception=False, classes={}):
@@ -13,6 +14,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
     since = time.time()
     val_acc_history = []
     train_acc_history = []
+    val_loss_history = []
+    train_loss_history = []
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -83,7 +86,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 scheduler.step()
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
-            # accuracy on training set
+
             epoch_acc = running_corrects / len(dataloaders[phase].dataset)
 
             print('{} Loss: {:.4f} Accuracy: {:.2f}%'.format(phase, epoch_loss, epoch_acc * 100))
@@ -94,8 +97,10 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 best_model_wts = copy.deepcopy(model.state_dict())
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
+                val_loss_history.append(epoch_loss)
             if phase == 'train':
                 train_acc_history.append(epoch_acc)
+                train_loss_history.append(epoch_loss)
 
         print()
 
@@ -105,4 +110,4 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, train_acc_history, val_acc_history
+    return model, train_acc_history, val_acc_history, train_loss_history, val_loss_history
