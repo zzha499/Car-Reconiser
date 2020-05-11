@@ -90,9 +90,8 @@ def get_all_preds(model, data_loader):
 
 def calculate_scores(model, dataset):
     with torch.no_grad():
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=10000)
-        preds = get_all_preds(model, data_loader)
-
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
+        preds = get_all_preds(model, data_loader).to("cpu")
     precision, recall, fscore, support = score(dataset.targets, preds)
 
     print('precision: {}'.format(precision))
