@@ -3,7 +3,7 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics import precision_recall_fscore_support as Score
 
 
 def plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs):
@@ -45,6 +45,7 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
         preds = get_all_preds(model, data_loader).to("cpu")
     if score:
+        print("Calculating precision, recall, and f1 scores......")
         scores = np.asarray(calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes)))
         plt.figure(3)
         plt.title('Precision/Recall/F1 Scores')
@@ -52,16 +53,15 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
         plt.xticks(tick_marks, ["Precision", "Recall", "F1", "Number of images"], rotation=45)
         plt.yticks(tick_marks, classes)
 
-        fmt = '.2f' if normalize else 'd'
         for i, j in itertools.product(range(scores.shape[0]), range(scores.shape[1])):
-            plt.text(j, i, format(scores[i, j], fmt), horizontalalignment="center",
+            plt.text(j, i, format(scores[i, j], '.2f'), horizontalalignment="center",
                      color="white")
         plt.tight_layout()
         plt.ylabel('Classes')
         plt.xlabel('Scores')
         plt.show()
 
-
+    print("Calculating confusion matrix......")
     cm = confusion_matrix(dataset.targets, preds.argmax(dim=1))
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -107,10 +107,8 @@ def get_all_preds(model, data_loader):
 
 
 def calculate_scores(labels, preds, classes):
-    precision, recall, fscore, support = score(labels, preds, average=None, labels=classes)
+    precision, recall, fscore, support = Score(labels, preds, average=None, labels=classes)
     np.set_printoptions(precision=2)
-    precision = precision * 100
-    recall = recall * 100
     print('precision: {}'.format(precision))
     print('recall: {}'.format(recall))
     print('fscore: {}'.format(fscore))
