@@ -14,7 +14,8 @@ parser = argparse.ArgumentParser(description='PyTorch Car Dataset Training')
 parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, help='Available Dataset: [car_dataset, '
                                                                                    'car_dataset_modified, cifar100, '
                                                                                    'mnist]')
-parser.add_argument('--model', '-m', default="resnet", type=str, help='Model')
+parser.add_argument('--model', '-m', default="resnet", type=str, help='Available Model: [resnet, vgg, squeezenet, '
+                                                                      'densenet, inception]')
 parser.add_argument('--lr', '-lr', default=0.05, type=float, help='Starting learning rate')
 parser.add_argument('--batch_size', '-b', default=64, type=int, help='Batch size')
 parser.add_argument('--num_of_epochs', '-es', default=15, type=int, help='Number of epochs')
@@ -29,11 +30,11 @@ data_dir = "./data"
 # The dataset to train the model on [car_data, car_data_modified, cifar100, mnist]
 dataset_name = args.dataset
 
-# Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
+# Models to choose from [resnet, vgg, squeezenet, densenet, inception]
 model_name = args.model
 
 # Number of classes in the dataset
-num_classes = len(os.listdir(os.path.join(os.path.join(data_dir, args.dataset), "train")))-1
+num_classes = len(os.listdir(os.path.join(os.path.join(data_dir, args.dataset), "train")))
 
 # Batch size for training (change depending on how much memory you have)
 batch_size = args.batch_size
