@@ -40,7 +40,7 @@ def plot_loss_vs_epoch(train_loss, val_loss, num_epochs):
 
 
 def plot_confusion_matrix(model, data_loader, classes, normalize=False):
-    preds = get_all_preds(model, data_loader
+    preds = get_all_preds(model, data_loader)
     cm = confusion_matrix(data_loader.labels, preds.argmax(dim=1))
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
