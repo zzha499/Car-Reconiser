@@ -2,8 +2,8 @@
 By Will Zhang and Eric Zhao
 
 ## Dataset - Stanford Cars Dataset
-Original Dataset Download Link: https://ai.stanford.edu/~jkrause/cars/car_dataset.html 
-Modified Dataset Download Link: https://drive.google.com/file/d/11bS7Az-x4WkMUM066KgAhyiVWx-BqGwa/view?usp=sharing 
+### Original Dataset Download Link: https://ai.stanford.edu/~jkrause/cars/car_dataset.html 
+### Modified Dataset Download Link: https://drive.google.com/file/d/11bS7Az-x4WkMUM066KgAhyiVWx-BqGwa/view?usp=sharing 
 
 ## Models 
 ### Resnet-10
