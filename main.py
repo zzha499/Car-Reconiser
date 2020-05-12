@@ -103,7 +103,7 @@ if __name__ == "__main__":
     graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
     # Plot the confusion matrix and calculate the precision, recall, and F1 scores of the trained model
-    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], classes, normalize=False, Score=True)
+    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], class_names, normalize=False, Score=True)
 
     # Exit program
     exit()
