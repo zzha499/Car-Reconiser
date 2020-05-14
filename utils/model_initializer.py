@@ -36,7 +36,7 @@ def initialize_model(model_name, num_classes):
         """ Inception v3
         Be careful, expects (299,299) sized images and has auxiliary output
         """
-        model = inception.Inception3()
+        model = models.inception_v3()
         # Handle the auxilary net
         num_rs = model.AuxLogits.fc.in_features
         model.AuxLogits.fc = nn.Linear(num_rs, num_classes)
@@ -61,10 +61,10 @@ def initialize_model(model_name, num_classes):
         model.classifier = nn.Linear(num_rs, num_classes)
         input_size = 224
 
-    elif model_name == "resnet152":
-        """ Resnet152
+    elif model_name == "resnet18":
+        """ Resnet18
         """
-        model = models.resnet152()
+        model = models.resnet18()
         num_rs = model.fc.in_features
         model.fc = nn.Linear(num_rs, num_classes)
         input_size = 224

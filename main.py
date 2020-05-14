@@ -9,13 +9,13 @@ parser = argparse.ArgumentParser(description='PyTorch Car Dataset Training')
 parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, help='Available Dataset: [car_dataset, '
                                                                                    'car_dataset_modified, cifar100, '
                                                                                    'mnist]')
-parser.add_argument('--model', '-m', default="resnet", type=str, help='Available Model: [alexnet, resnet, vgg, '
+parser.add_argument('--model', '-m', default="inception", type=str, help='Available Model: [alexnet, resnet, vgg, '
                                                                       'squeezenet, densenet, inception]')
-parser.add_argument('--lr', '-lr', default=0.05, type=float, help='Starting learning rate')
-parser.add_argument('--batch_size', '-b', default=128, type=int, help='Batch size')
-parser.add_argument('--num_of_epochs', '-es', default=15, type=int, help='Number of epochs')
+parser.add_argument('--lr', '-lr', default=0.01, type=float, help='Starting learning rate')
+parser.add_argument('--batch_size', '-b', default=16, type=int, help='Batch size')
+parser.add_argument('--num_of_epochs', '-es', default=10, type=int, help='Number of epochs')
 parser.add_argument('--save_model', '-sm', default=True, action='store_true', help='Save model')
-parser.add_argument('--load_model', '-lm', default=False, action='store_true', help='Load model')
+parser.add_argument('--load_model', '-lm', default=True, action='store_true', help='Load model')
 # parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
 # parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
 # parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
@@ -52,6 +52,9 @@ save_model = args.save_model
 # Flag for loading model
 load_model = args.load_model
 
+# Flag for training model
+train_model = True
+
 if __name__ == "__main__":
     # Initialize the model for this run
     model, input_size = model_initializer.initialize_model(model_name, num_classes)
@@ -79,28 +82,29 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     # criterion = nn.functional.nll_loss()
 
-    # Train and evaluate
-    print("Training model:")
-    model, train_acc, val_acc, train_loss, val_loss = model_trainer.train_model(model, dataloaders_dict, criterion,
-                                                                                optimizer, scheduler,
-                                                                                num_epochs=num_epochs,
-                                                                                is_inception=(
-                                                                                            model_name == "inception"),
-                                                                                classes=classes)
+    if train_model:
+        # Train and evaluate
+        print("Training model:")
+        model, train_acc, val_acc, train_loss, val_loss = model_trainer.train_model(model, dataloaders_dict, criterion,
+                                                                                    optimizer, scheduler,
+                                                                                    num_epochs=num_epochs,
+                                                                                    is_inception=(
+                                                                                                model_name == "inception"),
+                                                                                    classes=classes)
 
-    if save_model:
-        saved_model = {
-            'model': model,
-            'optimizer': optimizer,
-            'lr': learning_rate
-        }
-        torch.save(saved_model, "./saved_models/" + dataset_name + "_" + model_name + ".pt")
+        if save_model:
+            saved_model = {
+                'model': model,
+                'optimizer': optimizer,
+                'lr': learning_rate
+            }
+            torch.save(saved_model, "./saved_models/" + dataset_name + "_" + model_name + ".pt")
 
-    # Plot training and validation losses vs epochs
-    graph_plotter.plot_loss_vs_epoch(train_loss, val_loss, num_epochs)
+        # Plot training and validation losses vs epochs
+        graph_plotter.plot_loss_vs_epoch(train_loss, val_loss, num_epochs)
 
-    # Plot training and validation accuracies vs epochs
-    graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
+        # Plot training and validation accuracies vs epochs
+        graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
     # Plot the confusion matrix and calculate the precision, recall, and F1 scores of the trained model
     graph_plotter.plot_confusion_matrix(model, image_datasets['val'], class_names, normalize=False, Score=True)

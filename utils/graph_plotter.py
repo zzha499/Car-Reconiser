@@ -51,20 +51,12 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
         print("Calculating precision, recall, and f1 scores......")
         scores = np.asarray(calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes)))
         print(scores)
-        # plt.figure(3)
-        # plt.title('Precision/Recall/F1 Scores')
-        # xtick_marks = np.arange(4)
-        # ytick_marks = np.arange(len(classes))
-        # plt.xticks(xtick_marks, ["Precision", "Recall", "F1", "Number of images"], rotation=45)
-        #  plt.yticks(ytick_marks, classes)
-
-        # for i, j in itertools.product(range(scores.shape[0]), range(scores.shape[1])):
-        #     plt.text(j, i, format(scores[i, j], '.2f'), horizontalalignment="center",
-        #              color="black")
-        # plt.tick_params(axis='x', labelsize=14)
+        fig, ax = plt.subplots()
+        fig.patch.set_visible(False)
+        ax.axis('off')
+        ax.axis('tight')
+        fig.tight_layout()
         plt.table(cellText=scores, rowLabels=classes, colLabels=["Precision", "Recall", "F1", "Number of images"], loc='center')
-        # plt.ylabel('Classes')
-        # plt.xlabel('Scores')
         plt.show()
 
     print("Calculating confusion matrix......")
