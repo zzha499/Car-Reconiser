@@ -1,8 +1,8 @@
 # COMPSYS_302_Project_1 - Car Recogniser
 By Will Zhang and Eric Zhao
 
-This repository contain the dataloader, models, trainer, and other useful tools for the car recogniser.     
-The car recogniser is used to identify the brand of an car from a car image.
+This repository contains the data loader, models, trainer, and other useful tools for the car recogniser.     
+The car recogniser is used to identify the brand of a car from a car image.
 
 # Dependencies
 This recogniser require Python 3.6 and Pytorch to be installed.     
