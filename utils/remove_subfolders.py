@@ -1,6 +1,7 @@
 import os
 import shutil
 
+# The following code was used to modify the structure of the modified dataset to fit the TorchVision ImageFolder structure
 dir = 'C:/Users/ziang/Desktop/COMPSYS_302_Project_1/data/car_data_modified/train'
 
 folders = [f.path for f in os.scandir(dir) if f.is_dir()]

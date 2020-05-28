@@ -26,10 +26,8 @@ def plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs):
 
 
 def plot_loss_vs_epoch(train_loss, val_loss, num_epochs):
-    # Plot the training curves of validation accuracy vs. number
+    # Plot the training curves of validation loss vs. number
     #  of training epochs for the the trained model
-    # train_loss = [loss.cpu().numpy() for loss in train_loss]
-    # val_loss = [loss.cpu().numpy() for loss in val_loss]
 
     plt.figure(2)
     plt.title("Loss vs Number of Training Epochs")
@@ -44,10 +42,12 @@ def plot_loss_vs_epoch(train_loss, val_loss, num_epochs):
 
 
 def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
+    # Plot the confusion matrix of a given model on the specified dataset
     with torch.no_grad():
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=64)
         preds = get_all_preds(model, data_loader).to("cpu")
     if score:
+        # Plot the precision, recall, and f1 scores in a table
         print("Calculating precision, recall, and f1 scores......")
         scores = np.asarray(calculate_scores(dataset.targets, preds.argmax(dim=1), list(classes)))
         print(scores)
@@ -88,7 +88,6 @@ def plot_confusion_matrix(model, dataset, classes, normalize=False, score=True):
     plt.show()
 
 
-# https://deeplizard.com/learn/video/0LhiS6yu2qQ
 @torch.no_grad()
 def get_all_preds(model, data_loader):
     # Detect if we have a GPU available
@@ -105,6 +104,7 @@ def get_all_preds(model, data_loader):
 
 
 def calculate_scores(labels, preds, classes):
+    # Calculate the precision, recall, and f1 scores for each class in the dataset
     precision, recall, fscore, support = Score(labels, preds)
     precision = np.around(precision, decimals=2)*100
     recall = np.around(recall, decimals=2)*100

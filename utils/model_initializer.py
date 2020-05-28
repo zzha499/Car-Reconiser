@@ -1,6 +1,6 @@
 import torch.nn as nn
 from torchvision import models
-from my_models import resnet, vgg, inception, alexnet
+from my_models import resnet, alexnet
 
 
 def initialize_model(model_name, num_classes):
@@ -14,14 +14,6 @@ def initialize_model(model_name, num_classes):
         model = resnet.resnet10()
         num_rs = model.fc.in_features
         model.fc = nn.Linear(num_rs, num_classes)
-        input_size = 224
-
-    elif model_name == "vgg":
-        """ VGG8
-        """
-        model = vgg.vgg8()
-        num_rs = model.classifier[6].in_features
-        model.classifier[6] = nn.Linear(num_rs, num_classes)
         input_size = 224
 
     elif model_name == "alexnet":
@@ -44,22 +36,6 @@ def initialize_model(model_name, num_classes):
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
         input_size = 299
-
-    elif model_name == "squeezenet":
-        """ Squeezenet
-        """
-        model = models.squeezenet1_0()
-        model.classifier[1] = nn.Conv2d(512, num_classes, kernel_size=(1, 1), stride=(1, 1))
-        model.num_classes = num_classes
-        input_size = 224
-
-    elif model_name == "densenet":
-        """ Densenet
-        """
-        model = models.densenet121()
-        num_rs = model.classifier.in_features
-        model.classifier = nn.Linear(num_rs, num_classes)
-        input_size = 224
 
     elif model_name == "resnet18":
         """ Resnet18

@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+"""The following Resnet10 Model is adapted from Resnet18 from TorchVision"""
+
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
@@ -168,9 +170,8 @@ class ResNet(nn.Module):
                 norm_layer(planes * block.expansion),
             )
 
-        layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
-                            self.base_width, previous_dilation, norm_layer))
+        layers = [block(self.inplanes, planes, stride, downsample, self.groups,
+                        self.base_width, previous_dilation, norm_layer)]
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, groups=self.groups,
@@ -201,5 +202,6 @@ class ResNet(nn.Module):
         return self._forward_impl(x)
 
 
+# Reduced the number of layers from 18 to 10 to better suit the dataset
 def resnet10(**kwargs):
     return ResNet(block=BasicBlock, layers=[1, 1, 1, 1], **kwargs)

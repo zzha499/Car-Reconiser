@@ -8,10 +8,10 @@ setuptools.setup(
     version="0.0.1",
     author="Will Zhang, Eric Zhao",
     author_email="zzha499@aucklanduni.ac.nz, @aucklanduni.ac.nz ",
-    description="A small example package",
+    description="Car Recogniser",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/UOA-CS302-2020/CS302-Python-2020-Group5",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

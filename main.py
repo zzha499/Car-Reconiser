@@ -5,7 +5,7 @@ import torch.optim as optim
 from utils import model_initializer, data_loader, model_trainer, graph_plotter
 import argparse
 
-parser = argparse.ArgumentParser(description='PyTorch Car Dataset Training')
+parser = argparse.ArgumentParser(description='Car Recogniser')
 parser.add_argument('--dataset', '-d', default="car_data_modified", type=str, help='Available Dataset: [car_dataset, '
                                                                                    'car_dataset_modified, cifar100, '
                                                                                    'mnist]')
@@ -16,9 +16,9 @@ parser.add_argument('--batch_size', '-b', default=16, type=int, help='Batch size
 parser.add_argument('--num_of_epochs', '-es', default=10, type=int, help='Number of epochs')
 parser.add_argument('--save_model', '-sm', default=True, action='store_true', help='Save model')
 parser.add_argument('--load_model', '-lm', default=True, action='store_true', help='Load model')
-# parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
-# parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
-# parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
+parser.add_argument('--confusion_matrix', '-cm', default=True, action='store_true', help='Plot confusion Matrix')
+parser.add_argument('--accuracy_vs_epoch', '-ae', default=True, action='store_true', help='Plot confusion Matrix')
+parser.add_argument('--loss_vs_epoch', '-le', default=True, action='store_true', help='Plot confusion Matrix')
 args = parser.parse_args()
 
 # Top level data directory. Here we assume the format of the directory conforms
@@ -54,6 +54,12 @@ load_model = args.load_model
 
 # Flag for training model
 train_model = True
+
+# Flags for plotting graphs
+confusion_matrix = args.confusion_matrix
+accuracy_vs_epoch = args.accuracy_vs_epoch
+loss_vs_epoch = args.loss_vs_epoch
+
 
 if __name__ == "__main__":
     # Initialize the model for this run
@@ -100,14 +106,17 @@ if __name__ == "__main__":
             }
             torch.save(saved_model, "./saved_models/" + dataset_name + "_" + model_name + ".pt")
 
-        # Plot training and validation losses vs epochs
-        graph_plotter.plot_loss_vs_epoch(train_loss, val_loss, num_epochs)
+        if loss_vs_epoch:
+            # Plot training and validation losses vs epochs
+            graph_plotter.plot_loss_vs_epoch(train_loss, val_loss, num_epochs)
 
-        # Plot training and validation accuracies vs epochs
-        graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
+        if accuracy_vs_epoch:
+            # Plot training and validation accuracies vs epochs
+            graph_plotter.plot_accuracy_vs_epoch(train_acc, val_acc, num_epochs)
 
-    # Plot the confusion matrix and calculate the precision, recall, and F1 scores of the trained model
-    graph_plotter.plot_confusion_matrix(model, image_datasets['val'], class_names, normalize=False, Score=True)
+    if confusion_matrix:
+        # Plot the confusion matrix and calculate the precision, recall, and F1 scores of the trained model
+        graph_plotter.plot_confusion_matrix(model, image_datasets['val'], class_names, normalize=False, Score=True)
 
     # Exit program
     exit()

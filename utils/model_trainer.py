@@ -1,17 +1,21 @@
 import torch
 import time
 import copy
-from sklearn.metrics import confusion_matrix
 
 
-def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=1, is_inception=False, classes={}):
+# This function will train a model using a dataset with specified
+# loss function, optimiser, scheduler, and the number of epochs
+def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=1, is_inception=False, classes=None):
     # Detect if we have a GPU available
+    if classes is None:
+        classes = {}
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # Send the model to GPU
     model = model.to(device)
 
     since = time.time()
+    # record data for plotting graph
     val_acc_history = []
     train_acc_history = []
     val_loss_history = []
@@ -61,6 +65,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
 
                     _, preds = torch.max(outputs, 1)
 
+                    '''The following code is used for printing out the predicted class and the actual class for each image'''
                     # print("Actual: " + classes[labels[0].item()])
                     # print("Prediction: " + classes[preds[0].item()])
                     # print()

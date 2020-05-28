@@ -4,6 +4,7 @@ import pandas as pd
 import glob
 from PIL import Image
 
+"""The following code is used to crop the validating images from the Car Dataset"""
 val_dir = os.listdir('C:/Users/ziang/Desktop/COMPSYS_302_Project_1/data/car_data/val/')
 val_csv = pd.read_csv('C:/Users/ziang/Desktop/COMPSYS_302_Project_1/data/stanford-car-dataset-by-classes-folder/anno_test.csv', header=None)
 data_labels = np.array(pd.read_csv('C:/Users/ziang/Desktop/COMPSYS_302_Project_1/data/stanford-car-dataset-by-classes-folder/names.csv', header=None))

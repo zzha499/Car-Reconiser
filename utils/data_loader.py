@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# This function will load the appropriate dataset specified by the user. (default = car_data_modified)
 def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_dir="./data"):
-
     # Data augmentation and normalization for training
     # Just normalization for validation
     data_transforms = {
@@ -32,11 +32,24 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
 
     # Create training and validation datasets
     if dataset_name == "car_data":
-        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data', x), data_transforms[x]) for x in
+        if os.path.exists(os.path.join(data_dir + '/car_data', 'train')) and os.path.exists(os.path.join(data_dir + '/car_data', 'val')):
+            image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data', x), data_transforms[x]) for x in
                           ['train', 'val']}
+        else:
+            print("Please manually download the car dataset before training model\n")
+            print("Download Link: https://ai.stanford.edu/~jkrause/cars/car_dataset.html")
+            exit()
     elif dataset_name == "car_data_modified":
-        image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data_modified', x), data_transforms[x]) for x in
+        if os.path.exists(os.path.join(data_dir + '/car_data_modified', 'train')) and os.path.exists(
+                os.path.join(data_dir + '/car_data_modified', 'val')):
+            image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir + '/car_data_modified', x), data_transforms[x])
+                          for x in
                           ['train', 'val']}
+        else:
+            print("Please manually download the car dataset before training model\n")
+            print("Download Link: https://drive.google.com/file/d/11bS7Az-x4WkMUM066KgAhyiVWx-BqGwa/view?usp=sharing")
+            exit()
+    # Load the cifar100 dataset from TorchVision
     elif dataset_name == "cifar100":
         image_datasets = {"train": datasets.CIFAR100('./data', train=True,
                                                      transform=transforms.Compose(
@@ -48,6 +61,7 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
                                                        [transforms.Resize(224),
                                                         transforms.ToTensor(),
                                                         ]))}
+    # Load the mnist dataset from TorchVision
     elif dataset_name == "mnist":
         image_datasets = {"train": datasets.MNIST('./data', train=True, download=True,
                                                   transform=transforms.Compose(
@@ -75,28 +89,5 @@ def load_data(dataset_name="car_dataset", input_size=224, batch_size=32, data_di
         ['train', 'val']}
 
     inputs, labels = next(iter(dataloaders_dict['train']))
-
-    # def imshow(inp, title=None, ax=None, figsize=(10, 10)):
-    #     """Imshow for Tensor."""
-    #     print("ploting images")
-    #     inp = inp.numpy().transpose((1, 2, 0))
-    #     mean = np.array([0.485, 0.456, 0.406])
-    #     std = np.array([0.229, 0.224, 0.225])
-    #     inp = std * inp + mean
-    #     inp = np.clip(inp, 0, 1)
-    #     if ax is None:
-    #         fig, ax = plt.subplots(1, figsize=figsize)
-    #     ax.imshow(inp)
-    #     ax.set_xticks([])
-    #     ax.set_yticks([])
-    #     if title is not None:
-    #         ax.set_title(title)
-    #
-    # # Make a grid from batch
-    # out = torchvision.utils.make_grid(inputs, nrow=4)
-    #
-    # fig, ax = plt.subplots(1, figsize=(10, 10))
-    # title = [class_names[x.item()] if (i + 1) % 4 != 0 else class_names[x.item()] + '\n' for i, x in enumerate(labels)]
-    # imshow(out, title=' | '.join(title), ax=ax)
 
     return dataloaders_dict, class_names, image_datasets, classes
