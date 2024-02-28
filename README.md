@@ -1,5 +1,5 @@
 # COMPSYS_302_Project_1 - Car Recogniser
-By Will Zhang and Eric Zhao
+By Eric Zhao and Will Zhang
 
 This repository contains the data loader, models, trainer, and other useful tools for the car recogniser.     
 The car recogniser is used to identify the brand of a car from a car image.
